@@ -11,65 +11,38 @@ import numpy as np
 from scipy.stats import linregress
 
 path1 = r"C:\Users\annag\Documents\2018-2019\Spring_2019\BigDataProjects\flu-data-linear-regression\Mslaflu_1.csv"
-path2 = "/home/mandub/Desktop/6th semester/courses/Data Science Projects/data flu/flu-data-linear-regression/montana_flu_compiled_master_weekly INITIAL SAMPLE to team2.xlsx"
+path2 = "/home/mandub/Desktop/6th semester/courses/Data Science Projects/data flu/flu-data-linear-regression/Mslaflu_1.csv"
 path3 = r"C:\Users\jakeo\OneDrive\Documents\M467\flu-data-linear-regression\Mslaflu_1.csv"
 path4 = r"C:\Users\willi\Desktop\flu projrct\flu-data-linear-regression\Mslaflu_1.csv"
+
 
 
 pathlist = [path1, path2, path3, path4]
 names = ["Anna", "Mandub", "Jake", "Bill"]
 for paths in range(len(pathlist)):
     try:
-        with open(pathlist[paths], encoding = "utf-8") as f:
+        with open(pathlist[paths]) as f:#, encoding = "utf-8"
             print ("This is", names[paths])   
             path = pathlist[paths]
     except:
         print("This is not", names[paths])
-
-
-
-#try:
-#    
-# 
-#    with open(path1, encoding = "utf-8") as f:
-#        print ("Ok")   
-#        path = path1
-#except:
-#    print ("This is an error message!")
-#try:   
-#    with open(path2, encoding = "utf-8") as f:
-#        print ("Ok")
-#        path = path2      
-#except:
-#    print ("this is not mandub")
-#
-#try:   
-#    with open(path3, encoding = "utf-8") as f:
-#        print ("Ok")
-#        path = path3      
-#except:
-#    print ("this is not Jake")
-#    
-#try:   
-#    with open(path4, encoding = "utf-8") as f:
-#        print ("Ok")
-#        path = path4      
-#except:
-#    print ("this is not Bill")
-    
-    
+        
 #Get the data from the csv file
 #Put it in a dictionary:
     #key - week
     #value - count, population, rate
 
 MslaDict = defaultdict(list)
-with open(path, encoding = "utf-8") as f:
+with open(path) as f:  #, encoding = "utf-8"
     next(f)         #skip the header
     for string in f:
         data = string.split(",")
-        MslaDict[data[0]].append([data[1],data[2],data[3].rstrip()]) 
-        
+        MslaDict[data[0]].append([data[1],data[2],data[3].rstrip()])
+# printing keys and values in MslaDict dictionary     
+#for key, value in MslaDict.iteritems():
+#    print ("Key: ", key, " - Value: ", value )
+    
+#%%         
 #Create a list of pairs that are staggered
     #we want the week (n), rate (n+1)
 pair = []
