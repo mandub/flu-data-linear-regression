@@ -63,12 +63,12 @@ for i in range(len(pair)):
 N=10
 xTrain = x[-N:] # here it will take only 10 numbers   
 yTrain = y[-N:] # here it will take only 10 numbers
-#print (xTrain)
+print (xTrain)
 
 #create a linear regression and plot it
 slope, intercept, rvalue, pvalue,stderr =linregress(xTrain,yTrain)
-x1 = np.linspace(xTrain[0],xTrain[-1],500)
-y1 = intercept + slope*x1
+x1 = np.linspace(xTrain[0],xTrain[-1],500) # can you explain this line
+y1 = intercept + slope*x1                  # can you explain this line  
 plt.plot(np.array(xTrain),np.array(yTrain),"bo")
 plt.plot(x1,y1,'-r')
 plt.title = "Missoula Flu Rates"
