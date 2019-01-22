@@ -61,8 +61,9 @@ for i in range(len(pair)):
 
 #just looking at this year, so taking the last N weeks
 N=10
-xTrain = x[-N:]  
-yTrain = y[-N:]
+xTrain = x[-N:] # here it will take only 10 numbers   
+yTrain = y[-N:] # here it will take only 10 numbers
+#print (xTrain)
 
 #create a linear regression and plot it
 slope, intercept, rvalue, pvalue,stderr =linregress(xTrain,yTrain)
@@ -74,7 +75,7 @@ plt.title = "Missoula Flu Rates"
 plt.ylabel= "Flu Rates"
 plt.xlabel =  "Weeks"
 x1 = xTrain[-1]
-
+plt.show
 
 
 
