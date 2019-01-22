@@ -48,9 +48,9 @@ with open(path) as f:  #, encoding = "utf-8"
 pair = []
 for key in MslaDict.keys():
     if int(key) == 1:
-        pair.append((int(key),0))
+        pair.append((0, float(MslaDict[key][0][2])))
     else:
-        pair.append((int(key)+1,float(MslaDict[key][0][2])))
+        pair.append((int(key)-1,float(MslaDict[key][0][2])))
 
 #create our training data        
 x=[]     #week number
@@ -60,14 +60,14 @@ for i in range(len(pair)):
     y.append(pair[i][1])
 
 #just looking at this year, so taking the last N weeks
-N=10
+N=20
 xTrain = x[-N:] # here it will take only 10 numbers   
 yTrain = y[-N:] # here it will take only 10 numbers
 print (xTrain)
 
 #create a linear regression and plot it
 slope, intercept, rvalue, pvalue,stderr =linregress(xTrain,yTrain)
-x1 = np.linspace(xTrain[0],xTrain[-1],500) # can you explain this line
+x1 = np.linspace(xTrain[0],xTrain[-1],500) # can you explain
 y1 = intercept + slope*x1                  # can you explain this line  
 plt.plot(np.array(xTrain),np.array(yTrain),"bo")
 plt.plot(x1,y1,'-r')
