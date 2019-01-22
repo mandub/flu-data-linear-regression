@@ -44,7 +44,7 @@ with open(path) as f:  #, encoding = "utf-8"
     
 #%%         
 #Create a list of pairs that are staggered
-    #we want the week (n), rate (n+1)
+    #we want the week (n+1), rate (n)
 pair = []
 for key in MslaDict.keys():
     if int(key) == 1:
@@ -52,34 +52,73 @@ for key in MslaDict.keys():
     else:
         pair.append((int(key)-1,float(MslaDict[key][0][2])))
 
+
+
+#Flu rates over time
 #create our training data        
-x=[]     #week number
-y=[]     #flu rate
+x1=[]     #week number
+y1=[]     #flu rate
 for i in range(len(pair)):
-    x.append(pair[i][0])
-    y.append(pair[i][1])
+    x1.append(pair[i][0])
+    y1.append(pair[i][1])
 
 #just looking at this year, so taking the last N weeks
-N=20
-xTrain = x[-N:] # here it will take only 10 numbers   
-yTrain = y[-N:] # here it will take only 10 numbers
-print (xTrain)
+N=10
+xTrain1 = x1[-20:-N-1] # here it will take only 10 numbers   
+yTrain1 = y1[-20:-N-1] # here it will take only 10 numbers
 
-#create a linear regression and plot it
-slope, intercept, rvalue, pvalue,stderr =linregress(xTrain,yTrain)
-x1 = np.linspace(xTrain[0],xTrain[-1],500) # can you explain
-y1 = intercept + slope*x1                  # can you explain this line  
-plt.plot(np.array(xTrain),np.array(yTrain),"bo")
-plt.plot(x1,y1,'-r')
+xTest1 = x1[-N:]
+yTest1 = y1[-N:]
+
+
+#print (yTest1)
+
+
+
+#create a linear regression for flue rates over time and plot it
+slope, intercept, rvalue, pvalue,stderr =linregress(xTrain1,yTrain1)
+xa = np.linspace(xTrain1[0],xTest1[-1]+3) # can you explain
+ya = intercept + slope*xa                  # can you explain this line  
+plt.plot(np.array(xTrain1),np.array(yTrain1),"bo")
+plt.plot(np.array(xTest1), np.array(yTest1),"ko")
+plt.plot(xa,ya,'-r')
 plt.title = "Missoula Flu Rates"
 plt.ylabel= "Flu Rates"
 plt.xlabel =  "Weeks"
-x1 = xTrain[-1]
 plt.show
 
 
+#----------------------------------------------------------
+#x2 value is last weeks flu rate
+#y2 vaalue is this weeks flue rate
+
+x2=[]
+y2=[]
+for i in range(len(pair)-1):
+    x2.append(pair[i][1])
+    y2.append(pair[i+1][1])
+    #print(x2[i],y2[i])
+    
+#just looking at this year, so taking the last N weeks
+N=3
+xTrain2 = np.array(x2[-20:-N-1]) # here it will take only 9 numbers   
+yTrain2 = np.array(y2[-20:-N-1]) # here it will take only 9 numbers
 
 
-
-
+xTest2 = x2[-N:]
+yTest2 = y2[-N:]
+    
+#create a linear regression for flue rates over time and plot it
+slope, intercept, rvalue, pvalue,stderr =linregress(xTrain2,yTrain2)
+xb = np.linspace(np.amin(xTrain2),np.amax(xTrain2)) # an array from min of xTrain2 to max of xTrain2+3 to plot linear regression line
+yb = intercept + slope*xb                  # regression line using values calulated from above
+plt.plot(xTrain2, yTrain2,"bo")
+plt.plot(xTest2,xTest2,"ko")
+plt.plot(xb,yb,'-r')
+plt.title = "Missoula Flu Rates"
+plt.ylabel= "Flu Rates"
+plt.xlabel =  "Previous Weeks Flu Rates"
+plt.show
+#
+#
 
