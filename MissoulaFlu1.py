@@ -24,6 +24,7 @@ for paths in range(len(pathlist)):
         with open(pathlist[paths]) as f:#, encoding = "utf-8"
             print ("This is", names[paths])   
             path = pathlist[paths]
+            break
     except:
         print("This is not", names[paths])
         
