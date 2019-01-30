@@ -9,15 +9,16 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import linregress
-
+# Add your path here if you would like to test this program file name Mslaflu_1.csv
 path1 = r"C:\Users\annag\Documents\2018-2019\Spring_2019\BigDataProjects\flu-data-linear-regression\Mslaflu_1.csv"
 path2 = "/home/mandub/Desktop/6th semester/courses/Data Science Projects/data flu/flu-data-linear-regression/Mslaflu_1.csv"
 path3 = r"C:\Users\jakeo\OneDrive\Documents\M467\flu-data-linear-regression\Mslaflu_1.csv"
 path4 = r"C:\Users\willi\Desktop\flu projrct\flu-data-linear-regression\Mslaflu_1.csv"
 
 
-
+#Add variable for your path
 pathlist = [path1, path2, path3, path4]
+#Add your name here
 names = ["Anna", "Mandub", "Jake", "Bill"]
 for paths in range(len(pathlist)):
     try:
