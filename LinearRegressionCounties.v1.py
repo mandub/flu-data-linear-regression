@@ -34,7 +34,116 @@ import numpy as np
 from scipy.stats import linregress
 
 
+#============================================================ Mandub code 
+CountyDict = defaultdict(list)
+yeardata=defaultdict(list)
 
+CountyRateDict = defaultdict(list)  # Rate
+CountyCDict = defaultdict(list)     # C
+CountyPopDict = defaultdict(list)   #population
+actualNames=[]         # hold the actual county Names for presentation purpose
+countyLicenceNumber=[] # hold the actual county Licence Number for presentation purpose
+counties=[]              # hold county Shortcut names
+countyIndexes=defaultdict(list)       # hold 3 name and indexes for each county 
+                                        # first will be for the rate 
+                                        # the second will be for C
+                                        # the third will be for population
+counter = 1     # number of line in the file 
+with open(path) as f:
+    for line in f:
+        if counter == 1: # read the first line in the file
+            actualNames = line.split(",")
+            actualNames = actualNames[3:] # remove the first 3 elements in the list
+            actualNames[-1] = actualNames[-1].rstrip('\n') # remove newline char from last element
+            counter +=1
+            # need to clean redundant data
+            
+        elif counter == 2: #read the second line in the file
+            countyLicenceNumber= line.split(",")
+            countyLicenceNumber    = countyLicenceNumber[3:] # remove the first 3 elements in the list
+            countyLicenceNumber[-1] = countyLicenceNumber[-1].rstrip('\n') # remove newline char from last element
+            counter +=1
+            # need to clean redundant data and convert  to int
+            
+        elif counter == 3: #read the third line in the file
+            counter +=1
+            counties = line.split(",")
+            counties[-1] = counties[-1].rstrip('\n') # remove newline char from last element
+            temp = counties                 # hold the line structure to use the indexes
+            counties = counties[3:]
+            
+            counties2 = []                  # to remove redundant data  
+            for county in counties:
+                if county not in counties2:
+                    counties2.append(county)
+            counties = counties2
+            
+             
+            for county in counties:        # add counties indexes to countyIndexes
+                indexes= []                    #hold indexes for only one county
+# =============================================================================
+                CountyRateDict[county]= [] # ...we fill CountyRateDict by counties with empty list for the years
+                                           # ....where index zreo will be year 1
+                CountyCDict[county]=[]     # ...we fill CountyCDict by counties with empty list for the years
+                CountyPopDict[county]= []  # ...we fill CountyPopDict by counties with empty list for the years
+# =============================================================================
+                for index,value in enumerate (temp):  # if the same county append the index 
+                    if county == value:
+                        indexes.append(index)
+                countyIndexes[county]=indexes 
+                
+        
+        elif counter == 4:               #read the third line in the file
+            counter+=1                   # we do not do any thing because this line is headers line     
+        else:                            # read the others lines in the file for Data 
+            data =line.split(",")
+            year = int (data[1]) -1      # to use year as index for Dicts
+            weak = int (data[2]) -1      # to use weak as index ofr Dicts
+
+            if weak == 0 :                #newyear start
+                for county in CountyRateDict:
+                    CountyRateDict[county].append([])   # add new list for the weaks
+                    CountyCDict[county].append([])
+                    CountyPopDict[county].append([])
+                    
+                    rateIndex= countyIndexes[county][0] #take the index of rate
+                    rate = float (data[rateIndex])
+                    
+                    CIndex= countyIndexes[county][1] #take the index of C
+                    C = int (data[CIndex])
+                    
+                    popIndex= countyIndexes[county][2] #take the index of population
+                    pop = int (data[popIndex])
+                    
+                    CountyRateDict[county][year].append(rate)
+                    CountyCDict[county][year].append(C)
+                    CountyPopDict[county][year].append(pop)
+                    #repat for othre dict
+            else:
+                for county in CountyRateDict:
+                    rateIndex= countyIndexes[county][0] #take the index of rate
+                    rate = float (data[rateIndex])
+
+                    CIndex= countyIndexes[county][1] #take the index of C
+                    C = int (data[CIndex])
+                    
+                    popIndex= countyIndexes[county][2] #take the index of population
+                    pop = int (data[popIndex])
+                    
+                    CountyRateDict[county][year].append(rate)
+                    CountyCDict[county][year].append(C)
+                    CountyPopDict[county][year].append(pop)
+                
+# testing            
+for i in  CountyPopDict["SB"]:
+    print (i)
+# def function(County , number of weeks , index of staring weak , list of nibers)
+# return list of preductions
+
+# def function to writ to preductions files 
+
+
+#============================================================Edn mandub code
 
 countyList=['SB']
 countyDict={}
