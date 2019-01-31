@@ -32,8 +32,9 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.stats import linregress
-
-
+#################################################
+# read from the file and create Data dictionaries
+#################################################
 #============================================================ Mandub code 
 CountyDict = defaultdict(list)
 yeardata=defaultdict(list)
@@ -137,6 +138,12 @@ with open(path) as f:
 # testing            
 for i in  CountyPopDict["SB"]:
     print (i)
+#%%   
+###################################
+# Apply line regulation and create
+# production dictionary
+###################################
+productionDict = defaultdict(list)
 # def function(County , number of weeks , index of staring weak , list of nibers)
 # return list of preductions
 
@@ -144,6 +151,10 @@ for i in  CountyPopDict["SB"]:
 
 
 #============================================================Edn mandub code
+#%%   
+###################################
+# write the production to files
+###################################
 
 countyList=['SB']
 countyDict={}
@@ -222,7 +233,7 @@ def trainingMatricies(n,q,PredRates, rates):
         A += x*(x.T)               #create A sum of xi*xi.T
         z += x*yi                  #create z sum of xi*yi
 
-    return A,z,Y                 #Returns the predictor matrix and the target matrix  
+    return A,z,y                 #Returns the predictor matrix and the target matrix  
     
 A,z,Y = trainingMatricies(n,q,PredRates, rates)
 betahat = np.linalg.solve(A,z)    #solve for Beta Hat   B=A.inverse*z
