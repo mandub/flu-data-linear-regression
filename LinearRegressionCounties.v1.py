@@ -84,7 +84,7 @@ rates = countyDict['SB']['rate']
 N=440                  #week number to predict
 PredRates = 5          #number of rates used as predictors
 PredictorOther = 0     #number of other predictors
-n = 5                  #number of observations
+n = 433                 #number of observations
 q = 1+PredRates+PredictorOther        #number of predictor variables + 1 for augmentation
 
 #formula for data
@@ -106,7 +106,7 @@ def trainingMatricies(n,q,PredRates, rates):
     for i in range(n):
         yi= np.matrix(y[i])        #store yi as a matrix for matrix multiplication
         x1 = [1]                   #Augment the matrix so the 1st column is 1's to predict B0
-        x2 = rates[(startWeek-6+i):(stopWeek-6+i)]  #rates from the 5 weeks preceding yi
+        x2 = rates[(startWeek-(PredRates+1)+i):(startWeek-1+i)]  #rates from the 5 weeks preceding yi
         x2.reverse()               #reverse the order so most recent is first
         x1.extend(x2)              #add the rates to the list x1
         x= np.matrix(x1).T         #create the 1xn matrix x
@@ -117,11 +117,13 @@ def trainingMatricies(n,q,PredRates, rates):
     
 A,z,Y = trainingMatricies(n,q,PredRates, rates)
 betahat = np.linalg.solve(A,z)    #solve for Beta Hat   B=A.inverse*z
-
-
-
+betahat=np.matrix(betahat)
+xpredictors=countyDict['SB']['rate'][N-PredRates-1:N-1]
+xpredictors.insert(0,1)
+xpredictors=np.matrix(xpredictors)
     
-                
+yhat= xpredictors*betahat
+print("yhat=", yhat)               
         
 
 
