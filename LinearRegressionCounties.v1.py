@@ -136,14 +136,32 @@ with open(path) as f:
                     CountyPopDict[county][year].append(pop)
                 
 # testing            
-for i in  CountyPopDict["SB"]:
-    print (i)
+#for i in  CountyPopDict["SB"]:
+#    print (i)
 #%%   
 ###################################
 # Apply line regulation and create
 # production dictionary
 ###################################
 productionDict = defaultdict(list)
+
+for county in counties:                # fill productionDict with empty list for ecah county 
+    productionDict[county] =[]
+
+def productionFun(CountyRate,numberOfWeaks):
+    for year in CountyRate:
+        for weak in year:
+            print (weak)
+    return None
+Numweak= 10
+WeaksList= []
+for i in range (1,Numweak+1):
+    WeaksList.append(i)
+    
+for numberOfWeak in WeaksList:
+    #productionDict["SB"].append(numberOfWeak)
+    productionDict["SB"]= productionFun(CountyRateDict["SB"],numberOfWeak)
+    
 # def function(County , number of weeks , index of staring weak , list of nibers)
 # return list of preductions
 
