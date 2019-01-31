@@ -136,32 +136,14 @@ with open(path) as f:
                     CountyPopDict[county][year].append(pop)
                 
 # testing            
-#for i in  CountyPopDict["SB"]:
-#    print (i)
+for i in  CountyPopDict["SB"]:
+    print (i)
 #%%   
 ###################################
 # Apply line regulation and create
 # production dictionary
 ###################################
 productionDict = defaultdict(list)
-
-for county in counties:                # fill productionDict with empty list for ecah county 
-    productionDict[county] =[]
-
-def productionFun(CountyRate,numberOfWeaks):
-    for year in CountyRate:
-        for weak in year:
-            print (weak)
-    return None
-Numweak= 10
-WeaksList= []
-for i in range (1,Numweak+1):
-    WeaksList.append(i)
-    
-for numberOfWeak in WeaksList:
-    #productionDict["SB"].append(numberOfWeak)
-    productionDict["SB"]= productionFun(CountyRateDict["SB"],numberOfWeak)
-    
 # def function(County , number of weeks , index of staring weak , list of nibers)
 # return list of preductions
 
@@ -220,31 +202,69 @@ rates = countyDict['SB']['rate']
 
 #Define your variables
 N=440                  #week number to predict
-PredRates = 5          #number of rates used as predictors
+n = 433                 #number of observations N-6
+PredRates = 6          #number of rates used as predictors
+
+
+
+#Interactive Defining of variables
+County = input("Which County would you like to predict?\n")
+if County.upper() in CountyRateDict.keys():
+    print("Predicting for ", County.upper())
+else:
+    print("Invalid entry. Please try again")
+    County = input("Which County would you like to predict?\n")
+
+N = int(input("Enter the week you want to predict (integer between 6 and 440):\n"))
+if 6 <= N <= 440:
+    print("N=", N)
+else:
+    print("Invalid. Please try again")
+    N = int(input("Enter the week you want to predict (integer between 6 and 440):\n"))
+
+n = int(input("How many obsetvations would you like to use? (integer less than or equal to N-6):\n"))
+if n <= N-6:
+    print("n=", n)
+else:
+    print("Invalid entry, please try again")
+    n = int(input("How many obsetvations would you like to use? (integer less than or equal to N-6):\n"))
+
+
+PredRates = int(input("How many weeks would you like to use as predictors? (integer between 3 and 10):\n"))
+if 3<= PredRates <= 10:
+    print("Number of pridictor rates =", PredRates)
+else:
+    print("Invalid entry, please try again")
+    PredRates = int(input("How many weeks would you like to use as predictors? (integer between 3 and 10):\n"))
+
 PredictorOther = 0     #number of other predictors
-n = 433                 #number of observations
 q = 1+PredRates+PredictorOther        #number of predictor variables + 1 for augmentation
+
+
+
+
+
+
 
 #formula for data
 #y=week N-1-n to week N-1
 
 #xi=week N-2-n to week N-2
-
-def trainingMatricies(n,q,PredRates, rates):
-    #Creates y a vector of our target variables. Creates vector z = (X.T)y
-    #Creates A a matrix (X.T)X where X represents a matrix of predictor variables using vector xi is to predict yi.
-    #xi is the vector of the previous weeks rates for the county of interest, and yi is the current weeks observed rate
+def trainingMatricies(n,q,PredRates,data):
+    #INPUT: n-number of observations, q, number of predictors, PredRates- number of rates from previous weeks data
+    #OUTPUT: A-the matrix (X*X.T), z-The matrix X*y, y-the vector of target values
+    #
     A = np.zeros(shape = (q,q))     #Initialize X the predictor matrix
     z = np.zeros(shape = (q,1))     #Initialize vector z
     
     startWeek = N-1-n     #for  y, for x startWeek - 5
     stopWeek = N-1        #for  y, for x stopWeek - 5
-    y = np.matrix(rates[startWeek:stopWeek]).T               #empty list to hold the observed target rates
+    y = np.matrix(data[startWeek:stopWeek]).T               #empty list to hold the observed target rates
         
     for i in range(n):
         yi= np.matrix(y[i])        #store yi as a matrix for matrix multiplication
         x1 = [1]                   #Augment the matrix so the 1st column is 1's to predict B0
-        x2 = rates[(startWeek-(PredRates+1)+i):(startWeek-1+i)]  #rates from the 5 weeks preceding yi
+        x2 = data[(startWeek-(PredRates+1)+i):(startWeek-1+i)]  #rates from the 5 weeks preceding yi
         x2.reverse()               #reverse the order so most recent is first
         x1.extend(x2)              #add the rates to the list x1
         x= np.matrix(x1).T         #create the 1xn matrix x
@@ -253,7 +273,7 @@ def trainingMatricies(n,q,PredRates, rates):
 
     return A,z,y                 #Returns the predictor matrix and the target matrix  
     
-A,z,Y = trainingMatricies(n,q,PredRates, rates)
+A,z,y = trainingMatricies(n,q,PredRates, rates)
 betahat = np.linalg.solve(A,z)    #solve for Beta Hat   B=A.inverse*z
 betahat=np.matrix(betahat)
 xpredictors=countyDict['SB']['rate'][N-PredRates-1:N-1]
@@ -261,8 +281,11 @@ xpredictors.insert(0,1)
 xpredictors=np.matrix(xpredictors)
     
 yhat= xpredictors*betahat
+print("\n")
 print("yhat=", yhat)               
-        
+print("betahat =", betahat)        
+
+       
 
 
 
