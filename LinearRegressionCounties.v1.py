@@ -35,7 +35,7 @@ from scipy.stats import linregress
 #################################################
 # read from the file and create Data dictionaries
 #################################################
-#============================================================ Mandub code 
+#============================================================  
 CountyDict = defaultdict(list)
 yeardata=defaultdict(list)
 
@@ -147,20 +147,55 @@ productionDict = defaultdict(list)
 
 for county in counties:                # fill productionDict with empty list for ecah county 
     productionDict[county] =[]
-
-def productionFun(CountyRate,numberOfWeaks):
-    for year in CountyRate:
-        for weak in year:
-            print (weak)
-    return None
-Numweak= 10
-WeaksList= []
-for i in range (1,Numweak+1):
-    WeaksList.append(i)
     
-for numberOfWeak in WeaksList:
-    #productionDict["SB"].append(numberOfWeak)
-    productionDict["SB"]= productionFun(CountyRateDict["SB"],numberOfWeak)
+def linearRegression(weeksRateslist):
+    aWeekPredictionList =[]
+    if len (weeksRateslist) ==1:
+        aWeekPredictionList.append(weeksRateslist[0])
+        return aWeekPredictionList
+    for Rates in weeksRateslist:
+        print (Rates)
+
+    return aWeekPredictionList
+def productionFun(CountyRate):
+    alist3D = []
+    for yearIndex,year in enumerate (CountyRate):
+        alist3D.append([])               # make space for a year
+        ## chunks the year to lists of number 10
+        alist =year
+        temps=[]
+        num =10
+        for index,i in enumerate (alist):
+            L =[]
+            t=index
+            if index ==0:
+                L.append(alist[t])
+                temps.append(L)
+            elif index < num :
+                while (t!=0):
+                    L.append(alist[t])
+                    t -=1
+                L.reverse()
+                temps.append(L)
+            else :
+                while (t!=index - num):
+                    L.append(alist[t])
+                    t -=1
+                L.reverse()
+                temps.append(L)
+                
+        for weekIndex,week in enumerate(year):
+            alist3D[yearIndex].append([])   #make space for a week
+            aWeekPredictionList = []
+            #NumberOfobservations= len(temps[weekIndex])      # use observations from 1 up to 10
+            weeksRateslist= temps[weekIndex]                 # hold 10 previous weeks or less
+            
+            aWeekPredictionList = linearRegression(weeksRateslist)
+            alist3D[yearIndex][weekIndex].append(aWeekPredictionList) # Add a week prediction list to that week
+            
+    return alist3D  # return 3D object of one county [year][week][predictionlist]
+
+productionDict["SB"]= productionFun(CountyRateDict["SB"])
     
 # def function(County , number of weeks , index of staring weak , list of nibers)
 # return list of preductions
@@ -168,12 +203,19 @@ for numberOfWeak in WeaksList:
 # def function to writ to preductions files 
 
 
-#============================================================Edn mandub code
+#============================================================
 #%%   
 ###################################
 # write the production to files
 ###################################
 
+
+#%% 
+###################################
+# the model for only one county
+################################### 
+    
+    
 countyList=['SB']
 countyDict={}
 #countyDict=dict.fromkeys(countyList)
