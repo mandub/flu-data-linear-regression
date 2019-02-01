@@ -155,6 +155,7 @@ def linearRegression(weeksRateslist):
         return aWeekPredictionList
     for Rates in weeksRateslist:
         print (Rates)
+        
 
     return aWeekPredictionList
 def productionFun(CountyRate):
