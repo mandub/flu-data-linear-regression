@@ -136,8 +136,8 @@ with open(path) as f:
                     CountyPopDict[county][year].append(pop)
                 
 # testing            
-for i in  CountyPopDict["SB"]:
-    print (i)
+#for i in  CountyPopDict["SB"]:
+ #   print (i)
 #%%   
 ###################################
 # Apply line regulation and create
@@ -282,7 +282,8 @@ xpredictors=np.matrix(xpredictors)
     
 yhat= xpredictors*betahat
 print("\n")
-print("yhat=", yhat)               
+print("yhat=", yhat) 
+              
 print("betahat =", betahat)        
 
        
