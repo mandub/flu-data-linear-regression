@@ -82,6 +82,7 @@ def Plot_ObsVsPred(County,Year,nplots):
     if nplots == 1:
         for i in range(0,10):
             #Populates the prediction matrix with test values, change the assignment to extract predictions
+            #predictions[:,i] = PredictionDictionary[County][year]  For example
             predictions[:,i] = np.repeat(i/20000,len(y))
             plt.plot(predictions[:,i], label = str(i+1)+" weeks")    
         plt.plot(x, y, color = "black", linewidth = 2.0, label = "Observed Rates")
@@ -90,14 +91,91 @@ def Plot_ObsVsPred(County,Year,nplots):
     else:
         for i in range(0,10):
             #Populates the prediction matrix with test values, change the assignment to extract predictions
+            #predictions[:,i] = PredictionDictionary[County][year]  For example            
             predictions[:,i] = np.repeat(i/20000,len(y))
             plt.plot(x, predictions[:,i], label = str(i+1)+" weeks")
             plt.plot(x, y, color = "black", linewidth = 2.0, label = "Observed Rates")
             plt.legend(loc = "upper right")
-            plt.show()            
+            plt.show()        
             
-            
-            
-            
-            
+###################################################################################################################            
+#----------------------Function to calculate weighted average of surrounding county rates -------------------------           
+###################################################################################################################
+
+#Build Adjacent County Dictionary
+def countyDictBuild():
+    countyList=CountyListBuild()
+    countyDict={}
+    countyDict=dict.fromkeys(countyList)
+    countyDict['BE']=['RA','SB','MA','CMHD']
+    countyDict['BH']=['YE','TR','CA','RS','PR']
+    countyDict['BL']=['HI','PH']
+    countyDict['BR']=['LC','JE','GA','ME']
+    countyDict['CA']=['PA','YE','BH']
+    countyDict['CS']=['TE','LC','ME','CMHD']
+    countyDict['CMHD']=['YE','RS','GF','PH','BL','CS','ME','SG']
+    countyDict['FA']=['WI','PR','CS']
+    countyDict['FL']=['LI','SA','LA','MS','PW','LC','TE','PO','GL']
+    countyDict['GA']=['MA','JE','BR','ME','PA']
+    countyDict['GF']=['RO','PH','VA','MC','CMHD']
+    countyDict['GL']=['FL','PO','TO']
+    countyDict['HI']=['LI','CMHD','BL']
+    countyDict['JE']=['MA','SB','CMHD','PW','LC','BR','GA']
+    countyDict['LA']=['MS','SA','FL','PW']
+    countyDict['LC']=['FL','TE','CS','ME','BR','JE','PW']
+    countyDict['LI']=['TO','PO','CMHD','HI']
+    countyDict['LN']=['FL','SA']
+    countyDict['MA']=['BE','SB','JE','GA']
+    countyDict['MC']=['GF','VA','RO','RI','CMHD',]
+    countyDict['ME']=['LC','CS','SG','PA','GA','BR']
+    countyDict['MI']=['SA','MS']
+    countyDict['MS']=['MI','SA','LA','FL','PW','RA']
+    countyDict['PA']=['GA','ME','SG','CA']
+    countyDict['PH']=['BL','GF','VA']
+    countyDict['PO']=['GL','FL','TE','CMHD','LI','TO']
+    countyDict['PR']=['BH','RS','CMHD',]
+    countyDict['PW']=['CMHD','MS','FL','LC','JE']
+    countyDict['RA']=['MS','CMHD','BE']
+    countyDict['RI']=['RO','MC','CMHD','WI']
+    countyDict['RO']=['SH','CMHD','VA','MC','RI']
+    countyDict['RS']=['GF','TR','BH','PR','CMHD']
+    countyDict['SA']=['LN','FL','LA','MS','MI']
+    countyDict['SH']=['CMHD','RO']
+    countyDict['SB']=['JE','CMHD','BE','MA']
+    countyDict['SG']=['PA']
+    countyDict['TE']=['PO','CMHD','CS','LC','FL']
+    countyDict['TO']=['GL','PO','LI']
+    countyDict['TR']=['RS','BH','YE']
+    countyDict['VA']=['PH','GF','MC','RO','CMHD']
+    countyDict['WI']=['RI','CMHD','FA']
+    countyDict['YE']=['CA','TR','BH']
+    return countyDict            
+
+#-----------------------------------------------Weighted Average Function---------------------------------------------------
+#This function takes a county name (two letter code) and a year (1 through 9) and returns an array containing the
+#weighted average of the rates in adjacent counties for all weeks in the given year. 
+#This function uses information from CountyRateDict and CountyPopDict.
+def AdjCounties_WtAverage(name,year):
+    
+    AdjCounties = countyDict[name] #Extract a list of adjacent counties
+    matrix = np.zeros((len(CountyRateDict[name][year-1]),len(AdjCounties))) #Initialize a matrix to store weighted rates
+    total = sum(CountyPopDict[county][year-1][0] for county in AdjCounties) #Calculate total adjacent population (sum of adjacent counties)
+    
+    #Extract rates and weight them
+    i = 0 #Counter to iterate through columns of the matrix
+    for county in AdjCounties:
+        pop = CountyPopDict[county][year-1][0] #Get the population of a given county
+        #weight = some function of population
+        #The weighting function can be easily altered
+        weight = pop/total
+        weightedList = weight*np.array(CountyRateDict[county][year-1]) #Apply weights
+        matrix[ : , i] = weightedList #Add weighted rates to the next column in the matrix
+        i += 1
+        
+    #Sum across rows and divide by the number of adjacent counties to get an average
+    weightedAverage = sum(matrix[ : , i] for i in range(0,len(AdjCounties)))/len(AdjCounties)
+    return weightedAverage
+
+#This line produces an array of weighted average rates in counties adjacent to Missoula County for year 1
+AdjCounties_WtAverage('MS',1)            
             
