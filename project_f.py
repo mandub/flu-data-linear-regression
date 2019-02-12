@@ -64,8 +64,35 @@ with open(path) as f:
             countyDict[county]['pop'].append(pop)
             #print(countyDict['SB']['year'])
 countyDict['CS']['rate']
-            
-            
+    
+#Function to plot observations vs predictions        
+import matplotlib.pyplot as plt
+import numpy as np
+
+
+def Plot_ObsVsPred(County,Year,nplots):
+    
+    #Initialize a matrix to store predictions
+    predictions = np.zeros((52,10))
+    #Get observed rates
+    y = CountyRateDict[County][Year]
+    #Create a list of weeks
+    x = [i for i in range(1,len(y)+1)]
+    #use 
+    if nplots == 1:
+        for i in range(0,10):
+            predictions[:,i] = np.repeat(i/20000,len(y))
+            plt.plot(predictions[:,i], label = str(i+1)+" weeks")    
+        plt.plot(x, y, color = "black", linewidth = 2.0, label = "Observed Rates")
+        plt.legend(loc = "upper right")
+        plt.show()
+    else:
+        for i in range(0,10):
+            predictions[:,i] = np.repeat(i/20000,len(y))
+            plt.plot(x, predictions[:,i], label = str(i+1)+" weeks")
+            plt.plot(x, y, color = "black", linewidth = 2.0, label = "Observed Rates")
+            plt.legend(loc = "upper right")
+            plt.show()            
             
             
             
