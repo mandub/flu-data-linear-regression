@@ -102,7 +102,7 @@ def Plot_ObsVsPred(County,Year,nplots):
 #----------------------Function to calculate weighted average of surrounding county rates -------------------------           
 ###################################################################################################################
 
-#Build Adjacent County Dictionary
+#Build Adjacent County Dictionary, required to calculate weighted average
 def countyDictBuild():
     countyList=CountyListBuild()
     countyDict={}
