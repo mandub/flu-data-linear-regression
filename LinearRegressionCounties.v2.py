@@ -325,7 +325,7 @@ def MatrixSolve(N,n,q,PredRates,rates,County,CountyRateDict1):
     xpredictors=np.matrix(xpredictors)
     yhat= xpredictors*betahat
     yObserved = ratesDict[N-1]
-    delta =yhat - yObserved
+    delta =yObserved - yhat
     
     return yhat,yObserved,delta,betahat
 
@@ -391,7 +391,7 @@ with open(pathprint, mode = 'w') as output_file:
                                             # Execute functions -- Solve lineq
             yhat,yObserved, delta, betahat = MatrixSolve(N,n,q,PredRates,rates,County,CountyRateDict1)
             
-            output_writer.writerow([County, N, yhat, yObserved, delta])
+            output_writer.writerow([County, N, float(yhat), yObserved, delta])
             
                                             # send to console as well           
          
