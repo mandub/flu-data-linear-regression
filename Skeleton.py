@@ -210,6 +210,10 @@ for indexyear, year in enumerate (productionDict["SB"]):
     for indexweek, week in enumerate (year):
         print (week,CountyRateDict["SB"][indexyear][indexweek])
 """ 
+#%%   
+###################################
+# plot line regulation 
+###################################
 def plot1(County,Year):
     Year= Year -1
     y = range(len (CountyRateDict[County][Year]))
@@ -270,25 +274,6 @@ def Plot_ObsVsPred(County,Year,nplots):
 
 #%%   
 
-# def function to writ to preductions files 
-
-#_____________________________________________________________
-#Create the model
-
-#Choose N, the week we are predicting
-#from the data create the vector y and matrix X
-#X is a N-1 by 1 vector of vectors xi  
-#where xi refers to the vector [1,xi,xi-1,x-2,...x0,0,0,0] 
-#xi is a 1xN-1 vector
-
-
-CountyRateDict1={}
-for county in CountyRateDict.keys():
-    CountyRateDict1[county]=[]
-    for year in range(len(CountyRateDict[county])):
-        CountyRateDict1[county].extend(CountyRateDict[county][year])
-
-
 
 
 
@@ -324,142 +309,17 @@ if n <= N-PredRates:
 else:
     print("Invalid entry, please try again")
     n = int(input("How many obsetvations would you like to use? (integer less than or equal to N-number of predictors):\n"))
+"""
+###################################
+# apply another algorithm 
+###################################
+
+
+
+
+
 
 """
-
-
-
-
-
-#formula for data
-#y=week N-1-n to week N-1
-#xi=week N-2-n to week N-2
-def trainingMatricies(N,n,q,PredRates,data):
-    #INPUT: n-number of observations, q, number of predictors, PredRates- number of rates from previous weeks data
-    #OUTPUT: A-the matrix (X*X.T), z-The matrix X*y, y-the vector of target values
-    #
-    A = np.zeros(shape = (q,q))     #Initialize X the predictor matrix
-    z = np.zeros(shape = (q,1))     #Initialize vector z
-    
-    startWeek = N-1-n     #for  y, for x startWeek - 5
-    stopWeek = N-1        #for  y, for x stopWeek - 5
-    y = np.matrix(data[startWeek:stopWeek]).T               #empty list to hold the observed target rates
-        
-    for i in range(n):
-        yi= np.matrix(y[i])        #store yi as a matrix for matrix multiplication
-        x1 = [1]                   #Augment the matrix so the 1st column is 1's to predict B0
-        x2 = data[(startWeek-(PredRates+1)+i):(startWeek-1+i)]  #rates from the 5 weeks preceding yi
-        x2.reverse()               #reverse the order so most recent is first
-        x1.extend(x2)              #add the rates to the list x1
-        x= np.matrix(x1).T         #create the 1xn matrix x
-        A += x*(x.T)               #create A sum of xi*xi.T
-        z += x*yi                  #create z sum of xi*yi
-
-    return A,z,y                 #Returns the predictor matrix and the target matrix  
-
-
-
-def MatrixSolve(N,n,q,PredRates,rates,County,CountyRateDict1):
-    rates=CountyRateDict1[County]       
-    ratesRange=list(range(len(rates)))
-    ratesDict = dict(zip(ratesRange,rates))
-    A,z,y = trainingMatricies(N,n,q,PredRates, rates)
-    betahat = np.linalg.solve(A,z)    #solve for Beta Hat   B=A.inverse*z
-    betahat=np.matrix(betahat)
-    xpredictors=rates[N-PredRates-1:N-1] #xpredictors=CountyRateDict1[County][N-PredRates-1:N-1]
-    xpredictors.insert(0,1)
-    xpredictors=np.matrix(xpredictors)
-    yhat= xpredictors*betahat
-    yObserved = ratesDict[N-1]
-    delta =yObserved - yhat
-    
-    return yhat,yObserved,delta,betahat
-
-
-#for county in counties:
-#Define your variables
-N=440                  #week number to predict
-n = 433                 #number of observations N-6
-PredRates = 6          #number of rates used as predictors
-
-PredictorOther = 0     #number of other predictors
-q = 1+PredRates+PredictorOther        #number of predictor variables + 1 for augmentation
-County='CS' 
-rates=CountyRateDict1[County]
-ratesRange=list(range(len(rates)))
-ratesDict = dict(zip(ratesRange,rates))
-
-#yhat,yObserved, delta, betahat=MatrixSolve(N,n,q,PredRates,rates,County,CountyRateDict1)
-"""
-newlist=[]
-for County in counties:
-    
-    try :
-        for N in range (10,len (CountyRateDict1[County])-1):
-            PredRates = 6
-            n = N-PredRates 
-            yhat,yObserved, delta, betahat=MatrixSolve(N,n,q,PredRates,rates,County,CountyRateDict1)
-            #print (yhat.item(0),yObserved )
-        newlist.append(County)
-        print (County, 'OK')
-    except:
-        print(County, "has problems")
-"""      
-"""
-for county in counties:
-    print (county)
-    for year in CountyRateDict[county]:
-        print (len (year))
-        N = 45
-        PredRates = 6
-        n = N-PredRates
-        rates=year
-        PredictorOther = 0
-        q = 1+PredRates+PredictorOther
-        yhat,yObserved, delta, betahat=MatrixSolve(N,n,q,PredRates,rates)
-        print (yhat,yObserved)
-        
-        
-
-# =============================================================================
-# print("\n")
-# print(County)
-# 
-# print("yhat=", yhat,"y=", yObserved, 'delta = ', delta) 
-#               
-# print("betahat =", betahat)    
-# 
-# =============================================================================
-
-
-
-
-#######################
-# Main Program Sequence
-#######################
-
-        
-####################### Initial conditions
-#        
-weekRequest = 366                           # enter the starting week here
-#                                            # This is year 8 week 1
-#
-#  
-#                                            # N is what we pass, so change program run above     
-N = weekRequest                             #
-#                                            # Change as required this will change all other computations
-#
-#                                            # since we decided on 6 predictor variables we will use
-n = N - PredRates                                   # every week in the set, up to the predict week
-#                                            # to compute Betas
-#
-#PredRates = 5                               # as above. Executive decision, change as req'd
-#
-#PredictorOther = 0                          # Leaving this in just in case we develop this model with other preds
-#
-#q = 1 + PredRates + PredictorOther          # just as it was before
-#                                            
-
 #path = r"C:\Users\Bill Griffin\flu-data-linear-regression"  
 ###################################
 # write the production to files
