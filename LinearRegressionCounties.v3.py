@@ -147,13 +147,13 @@ with open(path) as f:
 #%%   
 ###################################
 # Apply line regulation and create
-# production dictionary
+# prediction dictionary
 ###################################
 
-productionDict = defaultdict(list)
+predictionDict = defaultdict(list)
 
-for county in counties:                # fill productionDict with empty list for ecah county 
-    productionDict[county] =[]
+for county in counties:                # fill predictionDict with empty list for ecah county 
+    predictionDict[county] =[]
 
 from sklearn import datasets, linear_model
 from sklearn.metrics import mean_squared_error, r2_score
@@ -187,7 +187,7 @@ def linearRegression2(weeksRateslist):
 
 
 
-def productionFun2(CountyRate):
+def predictionFun2(CountyRate):
     alist2D = []
     
     for yearIndex,year in enumerate (CountyRate):
@@ -200,11 +200,11 @@ def productionFun2(CountyRate):
             alist2D[yearIndex][weekIndex]=aWeekPrediction
     return alist2D
             
-#productionDict["SB"]= productionFun(CountyRateDict["SB"])
+#predictionDict["SB"]= predictionFun(CountyRateDict["SB"])
 for county in counties:
-    productionDict[county]= productionFun2(CountyRateDict[county])
+    predictionDict[county]= predictionFun2(CountyRateDict[county])
 """
-for indexyear, year in enumerate (productionDict["SB"]):
+for indexyear, year in enumerate (predictionDict["SB"]):
     print len(year)
     print ("-------------------------------------------")
     for indexweek, week in enumerate (year):
@@ -214,7 +214,7 @@ def plot1(County,Year):
     Year= Year -1
     y = range(len (CountyRateDict[County][Year]))
     x = CountyRateDict[County][Year]
-    z = productionDict[County][Year]
+    z = predictionDict[County][Year]
     actualNames[counties.index(County)]
     Title= actualNames[counties.index(County)] +" Year " +str (Year +1)
     plt.title(Title)
@@ -390,119 +390,117 @@ ratesRange=list(range(len(rates)))
 ratesDict = dict(zip(ratesRange,rates))
 
 #yhat,yObserved, delta, betahat=MatrixSolve(N,n,q,PredRates,rates,County,CountyRateDict1)
-"""
-newlist=[]
-for County in counties:
-    
-    try :
-        for N in range (10,len (CountyRateDict1[County])-1):
-            PredRates = 6
-            n = N-PredRates 
-            yhat,yObserved, delta, betahat=MatrixSolve(N,n,q,PredRates,rates,County,CountyRateDict1)
-            #print (yhat.item(0),yObserved )
-        newlist.append(County)
-        print (County, 'OK')
-    except:
-        print(County, "has problems")
-"""      
-"""
-for county in counties:
-    print (county)
-    for year in CountyRateDict[county]:
-        print (len (year))
-        N = 45
-        PredRates = 6
-        n = N-PredRates
-        rates=year
-        PredictorOther = 0
-        q = 1+PredRates+PredictorOther
-        yhat,yObserved, delta, betahat=MatrixSolve(N,n,q,PredRates,rates)
-        print (yhat,yObserved)
-        
-        
-
-# =============================================================================
-# print("\n")
-# print(County)
-# 
-# print("yhat=", yhat,"y=", yObserved, 'delta = ', delta) 
-#               
-# print("betahat =", betahat)    
-# 
-# =============================================================================
-
-
-
-
-#######################
-# Main Program Sequence
-#######################
-
-        
-####################### Initial conditions
+#"""
+#newlist=[]
+#for County in counties:
+#    
+#    try :
+#        for N in range (10,len (CountyRateDict1[County])-1):
+#            PredRates = 6
+#            n = N-PredRates 
+#            yhat,yObserved, delta, betahat=MatrixSolve(N,n,q,PredRates,rates,County,CountyRateDict1)
+#            #print (yhat.item(0),yObserved )
+#        newlist.append(County)
+#        print (County, 'OK')
+#    except:
+#        print(County, "has problems")
+#"""      
+#"""
+#for county in counties:
+#    print (county)
+#    for year in CountyRateDict[county]:
+#        print (len (year))
+#        N = 45
+#        PredRates = 6
+#        n = N-PredRates
+#        rates=year
+#        PredictorOther = 0
+#        q = 1+PredRates+PredictorOther
+#        yhat,yObserved, delta, betahat=MatrixSolve(N,n,q,PredRates,rates)
+#        print (yhat,yObserved)
 #        
-weekRequest = 366                           # enter the starting week here
-#                                            # This is year 8 week 1
+#        
 #
-#  
-#                                            # N is what we pass, so change program run above     
-N = weekRequest                             #
-#                                            # Change as required this will change all other computations
+## =============================================================================
+## print("\n")
+## print(County)
+## 
+## print("yhat=", yhat,"y=", yObserved, 'delta = ', delta) 
+##               
+## print("betahat =", betahat)    
+## 
+## =============================================================================
 #
-#                                            # since we decided on 6 predictor variables we will use
-n = N - PredRates                                   # every week in the set, up to the predict week
-#                                            # to compute Betas
 #
-#PredRates = 5                               # as above. Executive decision, change as req'd
 #
-#PredictorOther = 0                          # Leaving this in just in case we develop this model with other preds
 #
-#q = 1 + PredRates + PredictorOther          # just as it was before
-#                                            
-
-#path = r"C:\Users\Bill Griffin\flu-data-linear-regression"  
-###################################
-# write the production to files
-###################################
-pathprint = path.strip("initial_flue.csv") +  "\County Flu Forecasts Weeks " + str(N) + " to 441.csv"
-
-                                            # change this path as applicable
-                                                                                   
-###################### Iterate through counties, weeks, build .csv file ... output to console for S&G's
-
-
-with open(pathprint, mode = 'w') as output_file:
-    
-    output_writer = csv.writer(output_file, dialect = 'excel')
-    
-    for County in counties:
-        
-        N = weekRequest                     # start each county at the week requested
-        n = N - PredRates
-    
-        while N < 442:                      # we want the last yhat to be week 441, which is last year we
-                                            # have a y
-                                                
-            rates=CountyRateDict1[County]   # load in the rate column for interated county
-            
-                                            # Execute functions -- Solve lineq
-            yhat,yObserved, delta, betahat = MatrixSolve(N,n,q,PredRates,rates,County,CountyRateDict1)
-            
-            output_writer.writerow([County, N, float(yhat), yObserved, delta])
-            
-                                            # send to console as well           
-         
-            print("Writing to file")
-            print( '\r' + County," Week = ", N, "yhat=", yhat,"y=", yObserved, 'delta = ', delta, end='') 
-                 
-                                            # increment N, n
-            N += 1
-            n += 1
-
- """      
-#%%
-
-
+########################
+## Main Program Sequence
+########################
+#
+#        
+######################## Initial conditions
+##        
+#weekRequest = 366                           # enter the starting week here
+##                                            # This is year 8 week 1
+##
+##  
+##                                            # N is what we pass, so change program run above     
+#N = weekRequest                             #
+##                                            # Change as required this will change all other computations
+##
+##                                            # since we decided on 6 predictor variables we will use
+#n = N - PredRates                                   # every week in the set, up to the predict week
+##                                            # to compute Betas
+##
+##PredRates = 5                               # as above. Executive decision, change as req'd
+##
+##PredictorOther = 0                          # Leaving this in just in case we develop this model with other preds
+##
+##q = 1 + PredRates + PredictorOther          # just as it was before
+##                                            
+#
+##path = r"C:\Users\Bill Griffin\flu-data-linear-regression"  
+####################################
+## write the prediction to files
+####################################
+#pathprint = path.strip("initial_flue.csv") +  "\County Flu Forecasts Weeks " + str(N) + " to 441.csv"
+#
+#                                            # change this path as applicable
+#                                                                                   
+####################### Iterate through counties, weeks, build .csv file ... output to console for S&G's
+#
+#
+#with open(pathprint, mode = 'w') as output_file:
+#    
+#    output_writer = csv.writer(output_file, dialect = 'excel')
+#    
+#    for County in counties:
+#        
+#        N = weekRequest                     # start each county at the week requested
+#        n = N - PredRates
+#    
+#        while N < 442:                      # we want the last yhat to be week 441, which is last year we
+#                                            # have a y
+#                                                
+#            rates=CountyRateDict1[County]   # load in the rate column for interated county
+#            
+#                                            # Execute functions -- Solve lineq
+#            yhat,yObserved, delta, betahat = MatrixSolve(N,n,q,PredRates,rates,County,CountyRateDict1)
+#            
+#            output_writer.writerow([County, N, float(yhat), yObserved, delta])
+#            
+#                                            # send to console as well           
+#         
+#            print("Writing to file")
+#            print( '\r' + County," Week = ", N, "yhat=", yhat,"y=", yObserved, 'delta = ', delta, end='') 
+#                 
+#                                            # increment N, n
+#            N += 1
+#            n += 1
+#
+# """
+#
 
 
 
