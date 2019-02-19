@@ -15,21 +15,22 @@ path1 = r"C:\Users\annag\Documents\2018-2019\Spring_2019\BigDataProjects\flu-dat
 path2 = "/home/mandub/Desktop/6th semester/courses/Data Science Projects/data flu/flu-data-linear-regression/initial_flu.csv"
 path3 = r"C:\Users\jakeo\OneDrive\Documents\M467\flu-data-linear-regression\initial_flu.csv"
 path4 = r"C:\Users\Bill Griffin\flu-data-linear-regression\initial_flu.csv"
-
-
-
 pathlist = [path1, path2, path3, path4]
-names = ["Anna", "Mandub", "Jake", "Bill"]
-for paths in range(len(pathlist)):
-    try:
-        with open(pathlist[paths]) as f:#, encoding = "utf-8"
-            print ("This is", names[paths])   
-            path = pathlist[paths]
-            break
-    except:
-        print("This is not", names[paths])
 
 
+def pathfinder(pathlist):
+    names = ["Anna", "Mandub", "Jake", "Bill", "Other"]
+    for paths in range(len(pathlist)):
+        try:
+            with open(pathlist[paths]):#, encoding = "utf-8"
+                print ("This is", names[paths])   
+                path = pathlist[paths]
+                break
+        except:
+            print("This is not", names[paths])
+    return(path)
+
+path = pathfinder(pathlist)
 
         
 from collections import defaultdict
