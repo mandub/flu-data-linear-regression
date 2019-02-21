@@ -227,13 +227,7 @@ def plot1(County,Year):
     plt.legend(loc = "upper right")
     plt.show()
 plot1("SB",1)
-plot1("SB",2)
-plot1("SB",3)
-plot1("SB",4)
-plot1("SB",5)
-plot1("SB",6)
-plot1("SB",7)
-plot1("SB",8)
+
 
     
 def Plot_ObsVsPred(County,Year,nplots):
@@ -270,7 +264,26 @@ def Plot_ObsVsPred(County,Year,nplots):
 
 
 
-
+def makeCountyDict(counties,CountyRateDict,CountyCDict,CountyPopDict):
+    # inputs counties as list and CountyRateDict for rate , CountyCDict for count ,CountyPopDict for pop
+    # output  countyDict for use it in kmean and winter functions
+    # Example  countyDict['BE'][1]['rate'] = [ from county BE return list of weeks for rate in year 1 ]
+    countyDict = defaultdict(list)
+    for county in counties:
+        countyDict[county]={1:{},2:{},3:{},4:{},5:{},6:{},7:{},8:{},9:{}}
+    for county in counties:
+        for index in range(9):
+            countyDict[county][index+1]=  {'rate' :CountyRateDict[county][index],
+                                            'count':CountyCDict[county][index],
+                                            'pop'  :CountyPopDict[county][index]
+                                           }
+                                
+    for i in countyDict['BE'][3]['pop']:
+        print (i)
+    return countyDict
+# to use countyDict
+# countyDict[county][year][ 'rate' OR count' OR 'pop'] return list of weeks
+countyDict = makeCountyDict(counties,CountyRateDict,CountyCDict,CountyPopDict)
 
 #%%   
 
