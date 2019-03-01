@@ -332,47 +332,47 @@ else:
 
 
 
-"""
-#path = r"C:\Users\Bill Griffin\flu-data-linear-regression"  
-###################################
-# write the production to files
-###################################
-pathprint = path.strip("initial_flue.csv") +  "\County Flu Forecasts Weeks " + str(N) + " to 441.csv"
-
-                                            # change this path as applicable
-                                                                                   
-###################### Iterate through counties, weeks, build .csv file ... output to console for S&G's
-
-
-with open(pathprint, mode = 'w') as output_file:
-    
-    output_writer = csv.writer(output_file, dialect = 'excel')
-    
-    for County in counties:
-        
-        N = weekRequest                     # start each county at the week requested
-        n = N - PredRates
-    
-        while N < 442:                      # we want the last yhat to be week 441, which is last year we
-                                            # have a y
-                                                
-            rates=CountyRateDict1[County]   # load in the rate column for interated county
-            
-                                            # Execute functions -- Solve lineq
-            yhat,yObserved, delta, betahat = MatrixSolve(N,n,q,PredRates,rates,County,CountyRateDict1)
-            
-            output_writer.writerow([County, N, float(yhat), yObserved, delta])
-            
-                                            # send to console as well           
-         
-            print("Writing to file")
-            print( '\r' + County," Week = ", N, "yhat=", yhat,"y=", yObserved, 'delta = ', delta, end='') 
-                 
-                                            # increment N, n
-            N += 1
-            n += 1
-
- """      
+#
+##path = r"C:\Users\Bill Griffin\flu-data-linear-regression"  
+####################################
+## write the production to files
+####################################
+#pathprint = path.strip("initial_flue.csv") +  "\County Flu Forecasts Weeks " + str(N) + " to 441.csv"
+#
+#                                            # change this path as applicable
+#                                                                                   
+####################### Iterate through counties, weeks, build .csv file ... output to console for S&G's
+#
+#
+#with open(pathprint, mode = 'w') as output_file:
+#    
+#    output_writer = csv.writer(output_file, dialect = 'excel')
+#    
+#    for County in counties:
+#        
+#        N = weekRequest                     # start each county at the week requested
+#        n = N - PredRates
+#    
+#        while N < 442:                      # we want the last yhat to be week 441, which is last year we
+#                                            # have a y
+#                                                
+#            rates=CountyRateDict1[County]   # load in the rate column for interated county
+#            
+#                                            # Execute functions -- Solve lineq
+#            yhat,yObserved, delta, betahat = MatrixSolve(N,n,q,PredRates,rates,County,CountyRateDict1)
+#            
+#            output_writer.writerow([County, N, float(yhat), yObserved, delta])
+#            
+#                                            # send to console as well           
+#         
+#            print("Writing to file")
+#            print( '\r' + County," Week = ", N, "yhat=", yhat,"y=", yObserved, 'delta = ', delta, end='') 
+#                 
+#                                            # increment N, n
+#            N += 1
+#            n += 1
+#
+#   
 #%%
 
 
