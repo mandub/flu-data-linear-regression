@@ -9,7 +9,7 @@ import functions as F
 
 #If you are using for the first time please enter your path as path 5 and add path5 to the pathlist
 
-path1 = r"C:\Users\annag\Documents\2018-2019\Spring_2019\BigDataProjects\flu-data-linear-regression\initial_flu.csv"
+path1 = r"C:\Users\annag\Documents\2018-2019\Spring_2019\BigDataProjects\flu-data-linear-regression\current.csv"
 path2 = "/home/mandub/Desktop/6th semester/courses/Data Science Projects/data flu/flu-data-linear-regression/initial_flu.csv"
 path3 = r"C:\Users\jakeo\OneDrive\Documents\M467\flu-data-linear-regression\initial_flu.csv"
 path4 = r"C:\flu-data-linear-regression\initial_flu.csv"
@@ -30,31 +30,49 @@ for county in countyList:
     
 NumPredWeeks = [3,4,5]         #list of options for number of weeks to use as predictor variables
 OtherPredVar = []               #other predictor variables
-opvn = len(OtherPredVar)
+
 
 #Predict flu rates with linear regression
 #LinearRegressionDict[NumPredWeek][county][year]
-LinearRegressionDict, YTrueLG = F.Linear_Regression(NumPredWeeks, OtherPredVar, opvn, years, countyDict, countyList)
+TruePredPairLR = F.Linear_Regression(NumPredWeeks, OtherPredVar, years, countyDict, countyList, 'rate' )
 
-for year in years:
-    F.plot1("MS",year,YTrueLG[5],LinearRegressionDict[5])
+F.plot1("SB",7,TruePredPairLR[3])
+F.plot1("SB",7,TruePredPairLR[4]) 
+F.plot1("SB",7,TruePredPairLR[5])  
 
 AdjacentWAve = {}
 for county in countyList:
     AdjacentWAve[county]={}
     for year in years:
         AdjacentWAve[county][year] = F.AdjCounties_WtAverage(county, year, 'rate', countyDict)
-#for i in range(len(AdjacentWAve['SB'][1])):
-#    print((AdjacentWAve['SB'][1][i]))
 
 
-OtherPredVar.append(AdjacentWAve)   
-opvn = len(OtherPredVar)  
-LinearRegressionWithAdjCounties, YTrueLGAC = F.Linear_Regression(NumPredWeeks, OtherPredVar[0], opvn, years, countyDict, countyList)
+OtherPredVar.append(AdjacentWAve)     
+TruePredPairLR_AdjCoun = F.Linear_Regression(NumPredWeeks, OtherPredVar[0], years, countyDict, countyList, 'rate')
 
-for year in years:
-    F.plot1("MS",year,YTrueLGAC[5],LinearRegressionWithAdjCounties[5])
+F.plot1("SB",8,TruePredPairLR_AdjCoun[3])
+F.plot1("SB",8,TruePredPairLR_AdjCoun[4]) 
+F.plot1("SB",8,TruePredPairLR_AdjCoun[5])  
+    
+##Predict flu counts with KNN
 
+k=4  #number of weeks that has rate closest to predictor week
+alpha=1/k;
+#create an empty prediction dictionary
+predictionDictKNN={}
+for county in countyList:
+    predictionDictKNN.update({county:{}})
+    for year in years:
+        predictionDictKNN[county].update({year:{'rate':[],'count':[]}})
+avgCount = F.kNearest(alpha,k, countyList, years,countyDict, predictionDictKNN)       
 
+#%%plotting different alpha's           
+import matplotlib.pyplot as plt 
+#alpha=0.7               
+x=[i for i in range(1,len(countyDict['LA'][4]['count']))]    #weights from week 41 to 1
+y=[i for i in predictionDictKNN['LA'][4]['count'][:-1]]          
+z=[i for i in countyDict['LA'][4]['count'][1:]]
+plt.plot(x,y,'bo-')
+plt.plot(x,z,'ro-')
 
-
+#
