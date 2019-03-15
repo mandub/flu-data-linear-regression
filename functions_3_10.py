@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Feb 19 11:41:29 2019
+Created on Tue Mar 12 11:41:27 2019
 
 @author: annag
 """
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Mar  7 12:42:19 2019
+@author: Cassidy
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -13,7 +21,7 @@ def pathfinder(pathlist):
     #Input: list of paths
     #Output: correct path for user
     #
-    names = ["Anna", "Mandub", "Jake", "Bill", "Other"]
+    names = ["Anna", "Mandub", "Jake", "Bill", "Cassidy"]
     for paths in range(len(pathlist)):
         try:
             with open(pathlist[paths]):#, encoding = "utf-8"
@@ -37,6 +45,7 @@ def convertData(dataString):
     for i in range(len(dataString)):
         dataString[i]=float(dataString[i])
     return dataString
+
 
 
 
@@ -74,6 +83,7 @@ def readData(countyList, years, countyDict, path):
 ###############################################################################
 # LINEAR REGRESSION
 ###############################################################################
+
 
 def Data(countyList, years, countyDict, PredWeek, OtherPredVar, D, VoI):
     #INPUT: PredWeek-#weeks used to predict, OtherPredVar-other predictor variables used, D-empty dictionary, VoI - variable of interest)
@@ -124,7 +134,7 @@ def InitialTrainingMatricies( countyList, years, D, Aci, Zci, q, start):
 def NextTrainingMatricies( county, year, D, Aci, Zci, j, start): 
     #INPUT: j-week index
     #OUTPUT: updated Aci and Zci adding next xi and yi removing previous xi*xi.T and xi*yi
-    #by Anna
+    #by Anna        
     yi = D[county][year][j][0]
     xi = D[county][year][j][1]
     yrem = D[county][year][j-start][0]
@@ -134,6 +144,7 @@ def NextTrainingMatricies( county, year, D, Aci, Zci, j, start):
     Aci[county][year] -= xrem*xrem.T
     Zci[county][year] -= xrem*yrem
     return Aci, Zci
+
 
 def InitialBetaSolver(countyList, years, Aci, Zci, Bci, q):
     #INPUT: Bci- empty dictionary
@@ -166,7 +177,6 @@ def NextBetaSolver(county, year, Aci, Zci, Bci,q,j):
         Bci[county][year]=(np.zeros(shape = (q,1)))
         pass
     return Bci
-
 
 def createPredictionDict(countyList, years):
     #INPUT: 
@@ -227,7 +237,6 @@ def NextpredictionDict(county, year, D, Bci,q, predictionDict, j, YTrue, ysum):
 
 
 
-
 def Linear_Regression(OtherPredVar, years, countyDict, countyList, VoI, PredWeek, start):
     #INPUT: OtherPredVar-dict of other predictor variables,VoI- variable of interest, #number of predictor variables, #of weeks used to train Beta
     #OUTPUT: predictionDict-dict of predictions by county, year  for each week, YTrue- dict of observed values by county by year, for each week
@@ -253,28 +262,6 @@ def Linear_Regression(OtherPredVar, years, countyDict, countyList, VoI, PredWeek
 
 
 ###############################################################################
-# K NEAREST NEIGHBORS
-###############################################################################
-# K-Nearest Exponential Function
-def kNearest(alpha,k, countyList, years,countyDict, predictionDict):
-    #INPUT:Numver of nearest weeks:k
-    #OUTPUT: prediction counts for all weeks staring from week 1
-    #
-    for county in countyList:
-        for year in years:
-            counts=countyDict[county][year]['count']
-            for j in range(1,len(counts)+1):
-                sumWeight=0
-                for i in range(1,j+1):
-                    weight=alpha*(1-alpha)**(i-1) #exponential weights of each rate
-                    weightedCount=weight*countyDict[county][year]['count'][j-i]
-                    sumWeight += weightedCount    #sum of weighted counts 
-                    avgCount=sumWeight            #average of weighted rates
-                predictionDict[county][year]['count'].append(avgCount)
-    return avgCount
-
-
-###############################################################################
 #PLOTTING RESULTS
 ###############################################################################
 
@@ -291,8 +278,7 @@ def plot1(County,Year, YTrue, predictionDict):
     plt.plot(x, z, 'ro-', linewidth = 2.0, label = "Prediction Rates")
     plt.legend(loc = "upper right")
     plt.show()
-    
-    
+
 ###############################################################################
 #ADJACENT COUNTY FUNCTIONS
 ###############################################################################
@@ -354,10 +340,12 @@ def adjcountyDictBuild(countyList):
     return adjcountyDict
 
 
+
+
 def AdjCounties_WtAverage(name,year,statistic,countyDict):
     #INPUT: county of interest, year of interest, statistic of interest(ie 'rate','count')
     #OUTPUT:array of weighted average of the statistic of interest for each week in the year and county of interest
-    #
+    #by Jake
     if name != 'STATE':
         AdjCounties = countyDict[name]['Adjacent'] #Extract a list of adjacent counties
         matrix = np.zeros((len(countyDict[name][year][statistic]),len(AdjCounties))) #Initialize a matrix to store weighted rates
@@ -381,35 +369,64 @@ def AdjCounties_WtAverage(name,year,statistic,countyDict):
     return weightedAverage
 
 
+##############################################################################
+#K-Nearest Exponential Function
+##############################################################################
 
-def createPredictionDict(countylist):
-    predictionDict={}
+def kNearest(predictionDict, countyList, years, countyDict):
+    #INPUT:Numver of nearest weeks:k
+    #OUTPUT: prediction counts for 
+    #by Van
     for county in countyList:
-        predictionDict.update({county:{}})
         for year in years:
-            predictionDict[county].update({year:{'rate':[],'count':[],'ybar':[]}})
+            counts=countyDict[county][year]['count']
+            for j in range(1,len(counts)+1):
+                weightedCount=0
+                ysum=0
+                alpha=1-(0.01)**float(1/j)
+                for i in range(1,j+1):
+                    weight=alpha*(1-alpha)**(i-1) #exponential weights of each count
+                    weightedCount+=weight*countyDict[county][year]['count'][j-i]
+                    ysum+=countyDict[county][year]['count'][j-i]
+                ybar=ysum/len(range(1,j+1))
+                predictionDict[county][year]['count'].append(weightedCount)
+                predictionDict[county][year]['ybar'].append(ybar)
     return predictionDict
 
+##############################################################################
+#K-Nearest COnventional Function
+##############################################################################
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+def kNearestCon(predictionDict,countyList,years, countyDict):
+    #INPUT:Numver of nearest weeks:k
+    #OUTPUT: prediction counts for 
+    #by Van
+    for county in countyList:
+        for year in years:
+            counts=countyDict[county][year]['count']
+            k=3           #number of nearest weeks to predict week k+1
+            for j in range(1,k):   #start to predict from week 2 to week k
+                weightedCount=0
+                ysum=0
+                alpha=1-(0.01)**float(1/j)
+                for i in range(0,j):
+                    ysum+=countyDict[county][year]['count'][i]
+                    weight=alpha*(1-alpha)**(j-1) #exponential weights of each count
+                    weightedCount+=weight*countyDict[county][year]['count'][i]
+                ybar=ysum/len(range(0,j))
+                predictionDict[county][year]['count'].append(weightedCount)
+                predictionDict[county][year]['ybar'].append(ybar)
+            for j in range(k,len(counts)+1):   #start to predict from week k+1(6)
+                weightedCount=0
+                ysum=0
+                alpha=1-(0.01)**float(1/k)
+                for i in range(1,j+1):
+                    ysum+=countyDict[county][year]['count'][j-i]
+                ybar=ysum/len(range(1,j+1))
+                predictionDict[county][year]['ybar'].append(ybar)
+                for i in range(k):
+                    weight=alpha*(1-alpha)**(i) #exponential weights of each count
+                    weightedCount+=weight*countyDict[county][year]['count'][j-i-1]
+                    
+                predictionDict[county][year]['count'].append(weightedCount)
+    return predictionDict
