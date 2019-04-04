@@ -75,10 +75,8 @@ def readData(countyList, years, countyDict, path):
 # LINEAR REGRESSION
 ###############################################################################
 
+
 def Data(countyList, years, countyDict, PredWeek, OtherPredVar, D, VoI):
-    #INPUT: PredWeek-#weeks used to predict, OtherPredVar-other predictor variables used, D-empty dictionary, VoI - variable of interest)
-    #OUTPUT: D- pairs (observed, pred var matrix) q- 1 + PredWeek + OtherPredVar
-    #by Anna
     opvn = len(OtherPredVar)
     for county in countyList:
         D[county]={}
@@ -95,7 +93,7 @@ def Data(countyList, years, countyDict, PredWeek, OtherPredVar, D, VoI):
                 q = 1 + PredWeek + opvn 
                 if opvn != 0:
                     if county != 'STATE':
-                        x0.append(OtherPredVar[county][year][i+PredWeek])
+                        x0.append(OtherPredVar[county][year][i+PredWeek-1])
                         q = 1 + PredWeek + 1
                     else:
                         x0.append(0)
@@ -104,41 +102,28 @@ def Data(countyList, years, countyDict, PredWeek, OtherPredVar, D, VoI):
                 D[county][year].append((y,X))
     return D, q
 
-def InitialTrainingMatricies( countyList, years, D, Aci, Zci, q, start):  
-    #INPUT: D- pairs (observed, pred var matrix), Aci,Zci - empty Dict, start- #of weeks to initialy train Beta 
-    #OUTPUT: Dictionaries Aci[county][year] = xi*xi.T, Zci[county][year] = xi*yi
-    #by Anna
+def InitialTrainingMatricies( countyList, years, D, Aci, Zci, q):   
     for county in countyList:
         Aci[county]={}
         Zci[county]= {}
         for year in years:
             Aci[county][year]= np.zeros(shape =(q,q))
             Zci[county][year]= np.matrix(np.zeros(shape = (q,1)))        
-            for i in range(0, start):
+            for i in range(0, 10):
                 yi = D[county][year][i][0]
                 xi = D[county][year][i][1]
                 Aci[county][year] += xi*xi.T
                 Zci[county][year] += xi*yi
     return Aci, Zci
 
-def NextTrainingMatricies( county, year, D, Aci, Zci, j, start): 
-    #INPUT: j-week index
-    #OUTPUT: updated Aci and Zci adding next xi and yi removing previous xi*xi.T and xi*yi
-    #by Anna
+def NextTrainingMatricies( county, year, D, Aci, Zci, j):         
     yi = D[county][year][j][0]
     xi = D[county][year][j][1]
-    yrem = D[county][year][j-start][0]
-    xrem = D[county][year][j-start][1]    
     Aci[county][year] += xi*xi.T
     Zci[county][year] += xi*yi
-    Aci[county][year] -= xrem*xrem.T
-    Zci[county][year] -= xrem*yrem
     return Aci, Zci
 
 def InitialBetaSolver(countyList, years, Aci, Zci, Bci, q):
-    #INPUT: Bci- empty dictionary
-    #OUTPUT: Initial Beta
-    #by Anna
     for county in countyList:
         Bci[county] = {}
         for year in years:
@@ -154,9 +139,6 @@ def InitialBetaSolver(countyList, years, Aci, Zci, Bci, q):
 
 
 def NextBetaSolver(county, year, Aci, Zci, Bci,q,j):
-    #INPUT: j-week predicted
-    #OUTPUT: Updated Bci using new Aci and Zci
-    #by Anna
     A = Aci[county][year]
     Z = Zci[county][year]
     try:
@@ -167,90 +149,54 @@ def NextBetaSolver(county, year, Aci, Zci, Bci,q,j):
         pass
     return Bci
 
-
-def createPredictionDict(countyList, years):
-    #INPUT: 
-    #OUTPUT:empty prediction dictionary in the format needed for team 3
-    #
-    predictionDict={}
+def initialpredictionDict(countyList, years, TruePredPair, D, Bci, PredWeek, q):
+    TruePredPair[PredWeek] = {}
     for county in countyList:
-        predictionDict.update({county:{}})
+        TruePredPair[PredWeek][county]={}
         for year in years:
-            predictionDict[county].update({year:{'rate':[],'count':[],'ybar':[]}})
-    return predictionDict
-
-
-def initialpredictionDict(countyList, years, D, Bci, q, start):
-    #INPUT: D- tuple (target, Predictor variable matrix), Bci-Beta, start- # of initial pred var to train Beta
-    #OUTPUT: predictionDict - prediction dictionary for first "start" y's and ybar's, ysum- sum of y's of first "start" targets, YTrue- dictionary of observed data
-    #by Anna
-    YTrue = {}
-    predictionDict = createPredictionDict(countyList, years)
-    for county in countyList:
-        YTrue[county]={}
-        for year in years:
-            YTrue[county][year] = []
-            X = np.matrix(np.zeros(shape = (start, q)))
-            for j in range(start):
+            TruePredPair[PredWeek][county][year] = []
+            X = np.matrix(np.zeros(shape = (10, q)))
+            for j in range(10):
                 X[j,] = D[county][year][j][1].T
             B = Bci[county][year]
             pred = X*B
-            ysum = 0
-            for j in range(start):
-                if float(pred[j,]) <0:
-                    pred[j,] = 0
-                predictionDict[county][year]['rate'].append(float(pred[j,]))
-                ysum += float(D[county][year][j][0])
+            for j in range(10):
+                TruePredPair[PredWeek][county][year].append((float(D[county][year][j][0]),float(pred[j,])))
 
-                ybar = ysum/(j+1)
-                predictionDict[county][year]['ybar'].append(ybar)
-                YTrue[county][year].append(float(D[county][year][j][0]))
-    return predictionDict, ysum, YTrue
+    return TruePredPair
 
-def NextpredictionDict(county, year, D, Bci,q, predictionDict, j, YTrue, ysum):
-    #INPUT: j- week being predicted, YTrue- dict of observed data to this point, ysum- sum of observations to this point
-    #OUTPUT: updated predictionDict, ysum and YTrue for week j
-    #by Anna
+def NextpredictionDict(county, year, D, Bci,q,TruePredPair, j, PredWeek):
     X = np.matrix(np.zeros(shape = (1, q)))
     X = D[county][year][j][1].T
     B = Bci[county][year]
     pred = X*B
-    if float(pred) <0:
-        pred = 0
-    predictionDict[county][year]['rate'].append(float(pred))
-    ysum = predictionDict[county][year]['ybar'][j-1]*(j)
-    ysum += float(D[county][year][j][0])
-    ybar = ysum/(j+1)
-    predictionDict[county][year]['ybar'].append(ybar)
-    YTrue[county][year].append(float(D[county][year][j][0]))    
-    return predictionDict, ysum, YTrue
+    TruePredPair[PredWeek][county][year].append((float(D[county][year][j][0]),float(pred)))
+
+    return TruePredPair
 
 
-
-
-def Linear_Regression(OtherPredVar, years, countyDict, countyList, VoI, PredWeek, start):
-    #INPUT: OtherPredVar-dict of other predictor variables,VoI- variable of interest, #number of predictor variables, #of weeks used to train Beta
-    #OUTPUT: predictionDict-dict of predictions by county, year  for each week, YTrue- dict of observed values by county by year, for each week
-    #by Anna
-    D = {}
-    D, q = Data(countyList, years, countyDict, PredWeek, OtherPredVar, D,VoI)
-    Aci = {}
-    Zci = {}
-    Aci, Zci = InitialTrainingMatricies( countyList, years, D, Aci, Zci, q, start)
-    Bci = {}
-    Bci = InitialBetaSolver(countyList, years, Aci, Zci, Bci, q)
-    predictionDict, ysum, YTrue = initialpredictionDict(countyList, years, D, Bci, q, start)
-    for county in countyList:
-        for year in years:
-            for j in range(start,len(D[county][year])):
-                predictionDict, ysum, YTrue = NextpredictionDict(county, year, D, Bci,q,predictionDict, j, YTrue, ysum)
-                Aci, Zci = NextTrainingMatricies( county, year, D, Aci, Zci,j, start)
-                Bci = NextBetaSolver(county, year, Aci, Zci, Bci, q, j)
-    return predictionDict, YTrue
-
-
-
-
+def Linear_Regression(NumPredWeeks, OtherPredVar, years, countyDict, countyList, VoI):
+    #INPUT: array of possible # of pred weeks, List of other pred var, number of pred var, list of years and counties, county dict
+    #OUTPUT:dict of predictions by pred weeks, county, year  for each wee, dict of True values by county by year, for each week
+    #LinRegPred[# of weeks][county][year] , YTrues[# of weeks][county][year]
+    TruePredPair = {}
+    for i in NumPredWeeks:
+        PredWeek = i
+        D = {}
+        D, q = Data(countyList, years, countyDict, PredWeek, OtherPredVar, D,VoI)
+        Aci = {}
+        Zci = {}
+        Aci, Zci = InitialTrainingMatricies( countyList, years, D, Aci, Zci, q)
+        Bci = {}
+        Bci = InitialBetaSolver(countyList, years, Aci, Zci, Bci, q)
+        TruePredPair = initialpredictionDict(countyList, years, TruePredPair, D, Bci, PredWeek, q)
+        for county in countyList:
+            for year in years:
+                for j in range(10,len(D[county][year])):
+                    TruePredPair = NextpredictionDict(county, year, D, Bci,q,TruePredPair, j, PredWeek)
+                    Aci, Zci = NextTrainingMatricies( county, year, D, Aci, Zci,j)
+                    Bci = NextBetaSolver(county, year, Aci, Zci, Bci, q, j)
+    return TruePredPair
 
 ###############################################################################
 # K NEAREST NEIGHBORS
@@ -278,21 +224,21 @@ def kNearest(alpha,k, countyList, years,countyDict, predictionDict):
 #PLOTTING RESULTS
 ###############################################################################
 
-def plot1(County,Year, YTrue, predictionDict):
+def plot1(County,Year, TruePredPair):
     Year= Year
-    x = range(len (YTrue[County][Year]))
-    y = YTrue[County][Year]
-    z = predictionDict[County][Year]['rate']
-    yb = predictionDict[County][Year]['ybar']
+    y = range(len (TruePredPair[County][Year]))
+    x = []
+    z = []
+    for i in range(len (TruePredPair[County][Year])):       
+        x.append(TruePredPair[County][Year][i][0])
+        z.append(TruePredPair[County][Year][i][1])
     Title= County +" Year " +str (Year)
     plt.title(Title)
-    plt.plot(x, yb, 'go-', linewidth = 2.0, label = "ybar")
-    plt.plot(x, y, 'bo-', linewidth = 2.0, label = "Observed Rates")
-    plt.plot(x, z, 'ro-', linewidth = 2.0, label = "Prediction Rates")
+    plt.plot(y, x,  'bo-', linewidth = 2.0, label = "Observed Rates")
+    plt.plot(y, z, 'ro-', linewidth = 2.0, label = "Prediction Rates")
     plt.legend(loc = "upper right")
     plt.show()
-    
-    
+
 ###############################################################################
 #ADJACENT COUNTY FUNCTIONS
 ###############################################################################

@@ -176,14 +176,6 @@ def NextBetaSolver(county, year, Aci, Zci, Bci,q,j):
         pass
     return Bci
 
-def createPredictionDict(countylist):
-    predictionDict={}
-    for county in countyList:
-        predictionDict.update({county:{}})
-        for year in years:
-            predictionDict[county].update({year:{'rate':[],'count':[],'ybar':[]}})
-    return predictionDict
-
 def initialpredictionDict(countyList, years, D, Bci, q, start):
     YTrue = {}
     predictionDict = createPredictionDict(countyList)
@@ -207,6 +199,16 @@ def initialpredictionDict(countyList, years, D, Bci, q, start):
                 predictionDict[county][year]['ybar'].append(ybar)
                 YTrue[county][year].append(float(D[county][year][j][0]))
     return predictionDict, ysum, YTrue
+
+
+def createPredictionDict(countylist):
+    predictionDict={}
+    for county in countyList:
+        predictionDict.update({county:{}})
+        for year in years:
+            predictionDict[county].update({year:{'rate':[],'count':[],'ybar':[]}})
+    return predictionDict
+
 
 def NextpredictionDict(county, year, D, Bci,q, predictionDict, j, YTrue, ysum):
     X = np.matrix(np.zeros(shape = (1, q)))
@@ -252,32 +254,38 @@ def plot1(County,Year, YTrue, predictionDict):
     y = YTrue[County][Year]
     z = predictionDict[County][Year]['rate']
     yb = predictionDict[County][Year]['ybar']
+    #actualNames[counties.index(County)]
     Title= County +" Year " +str (Year)
     plt.title(Title)
     plt.plot(x, yb, 'go-', linewidth = 2.0, label = "ybar")
     plt.plot(x, y, 'bo-', linewidth = 2.0, label = "Observed Rates")
-    plt.plot(x, z, 'ro-', linewidth = 2.0, label = "Prediction Rates")
+    plt.plot(x, z, 'rx-', linewidth = 2.0, label = "Prediction Rates")
     plt.legend(loc = "upper right")
     plt.show()
 
        
 OtherPredVar = []
+
 countyList = []
 years = list(range(1,10))
 countyDict = {}
+
 countyDict, countyList = F.readData(countyList, years, countyDict, path)
 AdjCountyDict = F.adjcountyDictBuild(countyList)
 
 for county in countyList:
     countyDict[county].update({'Adjacent':AdjCountyDict[county]})  
     
-
 PredWeek = 2
 start = 5
-
+#Predict flu rates with linear regression
+#LinearRegressionDict[NumPredWeek][county][year]
 predictionDict, YTrue = Linear_Regression(OtherPredVar, years, countyDict, countyList, 'rate', PredWeek, start )
+
 plot1("SB",8,YTrue, predictionDict)
- 
+#F.plot1("SB",7,TruePredPairLR[4]) 
+#F.plot1("SB",7,TruePredPairLR[5])  
+
 AdjacentWAve = {}
 for county in countyList:
     AdjacentWAve[county]={}
