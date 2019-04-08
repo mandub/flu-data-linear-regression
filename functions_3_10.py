@@ -105,7 +105,7 @@ def Data(countyList, years, countyDict, PredWeek, OtherPredVar, D, VoI):
                 q = 1 + PredWeek + opvn 
                 if opvn != 0:
                     if county != 'STATE':
-                        x0.append(OtherPredVar[county][year][i+PredWeek])
+                        x0.append(OtherPredVar[county][year][i+PredWeek-1])
                         q = 1 + PredWeek + 1
                     else:
                         x0.append(0)
@@ -114,36 +114,76 @@ def Data(countyList, years, countyDict, PredWeek, OtherPredVar, D, VoI):
                 D[county][year].append((y,X))
     return D, q
 
-def InitialTrainingMatricies( countyList, years, D, Aci, Zci, q, start):  
+def InitialTrainingMatricies( countyList, years, D, Aci, Zci, q, start,alpha0, alpha1, weights):  
     #INPUT: D- pairs (observed, pred var matrix), Aci,Zci - empty Dict, start- #of weeks to initialy train Beta 
     #OUTPUT: Dictionaries Aci[county][year] = xi*xi.T, Zci[county][year] = xi*yi
     #by Anna
     for county in countyList:
         Aci[county]={}
         Zci[county]= {}
+        weights[county]= {}
         for year in years:
             Aci[county][year]= np.zeros(shape =(q,q))
-            Zci[county][year]= np.matrix(np.zeros(shape = (q,1)))        
+            Zci[county][year]= np.matrix(np.zeros(shape = (q,1))) 
+            weights[county][year] = []
             for i in range(0, start):
                 yi = D[county][year][i][0]
                 xi = D[county][year][i][1]
-                Aci[county][year] += xi*xi.T
-                Zci[county][year] += xi*yi
-    return Aci, Zci
+                if alpha0 == 0 and alpha1 == 0:
+                    #regular linear regression
+                    #Anna
+                    Aci[county][year] += xi*xi.T
+                    Zci[county][year] += xi*yi
+                    weights[county][year].append((xi*xi.T, xi*yi))                    
+                elif alpha0 == 0 and alpha1 !=0:
+                    #Exponentially weighted linear regression
+                    #Anna
+                    Aci[county][year] = (1-alpha1)*Aci[county][year] + alpha1*xi*xi.T
+                    Zci[county][year] = (1-alpha1)*Zci[county][year] + alpha1*xi*yi                    
+                    weights[county][year].append((alpha1*xi*xi.T,alpha1*xi*yi))
+                elif alpha0 != 0 and alpha1 == 0:
+                    #Exponentially weighted linear regression
+                    #Van
+                    weight = alpha0 * (1-alpha0)**(start-1-i)
+                    Aci[county][year] += xi*weight*xi.T
+                    Zci[county][year] += xi*weight*yi    
+                    weights[county][year].append((xi*weight*xi.T,xi*weight*yi))
+                
+    return Aci, Zci, weights
 
-def NextTrainingMatricies( county, year, D, Aci, Zci, j, start): 
+def NextTrainingMatricies( county, year, D, Aci, Zci, q, j, start, alpha0, alpha1, weights): 
     #INPUT: j-week index
     #OUTPUT: updated Aci and Zci adding next xi and yi removing previous xi*xi.T and xi*yi
     #by Anna        
     yi = D[county][year][j][0]
     xi = D[county][year][j][1]
-    yrem = D[county][year][j-start][0]
-    xrem = D[county][year][j-start][1]    
-    Aci[county][year] += xi*xi.T
-    Zci[county][year] += xi*yi
-    Aci[county][year] -= xrem*xrem.T
-    Zci[county][year] -= xrem*yrem
-    return Aci, Zci
+    Arem = weights[county][year][j-start][0]
+    Zrem = weights[county][year][j-start][1]
+    if alpha0 == 0 and alpha1 == 0:
+        #regular lin reg 
+        #Anna
+        Aci[county][year] += xi*xi.T - Arem
+        Zci[county][year] += xi*yi - Zrem
+        weights[county][year].append((xi*xi.T, xi*yi))                    
+    elif alpha0 == 0 and alpha1 !=0:
+        #exponentially weighted 
+        #Anna
+        Aci[county][year] = (1-alpha1)*Aci[county][year] + alpha1*xi*xi.T 
+        Zci[county][year] = (1-alpha1)*Zci[county][year] + alpha1*xi*yi 
+        weights[county][year].append((alpha1*xi*xi.T, alpha1*xi*yi))
+    elif alpha0 !=0 and alpha1 == 0:
+        #exponentially weighted 
+        #Van
+        Aci[county][year]= np.zeros(shape =(q,q))
+        Zci[county][year]= np.matrix(np.zeros(shape = (q,1)))                
+        for i in (0,start):
+            yi = D[county][year][j-i][0]
+            xi = D[county][year][j-i][1]
+            weight = alpha0 * (1-alpha0)**(i)
+            Aci[county][year] += xi*weight*xi.T 
+            Zci[county][year] += xi*weight*yi 
+            weights[county][year].append((xi*weight*xi.T, xi*weight*yi ))        
+    return Aci, Zci, weights
 
 
 def InitialBetaSolver(countyList, years, Aci, Zci, Bci, q):
@@ -190,7 +230,7 @@ def createPredictionDict(countyList, years):
     return predictionDict
 
 
-def initialpredictionDict(countyList, years, D, Bci, q, start):
+def initialpredictionDict(countyList, years, D, Bci, q, VoI, start):
     #INPUT: D- tuple (target, Predictor variable matrix), Bci-Beta, start- # of initial pred var to train Beta
     #OUTPUT: predictionDict - prediction dictionary for first "start" y's and ybar's, ysum- sum of y's of first "start" targets, YTrue- dictionary of observed data
     #by Anna
@@ -209,25 +249,26 @@ def initialpredictionDict(countyList, years, D, Bci, q, start):
             for j in range(start):
                 if float(pred[j,]) <0:
                     pred[j,] = 0
-                predictionDict[county][year]['rate'].append(float(pred[j,]))
+                predictionDict[county][year][VoI].append(float(pred[j,]))
                 ysum += float(D[county][year][j][0])
-
                 ybar = ysum/(j+1)
                 predictionDict[county][year]['ybar'].append(ybar)
                 YTrue[county][year].append(float(D[county][year][j][0]))
     return predictionDict, ysum, YTrue
 
-def NextpredictionDict(county, year, D, Bci,q, predictionDict, j, YTrue, ysum):
+def NextpredictionDict(county, year, D, Bci,q, VoI, predictionDict, j, YTrue, ysum):
     #INPUT: j- week being predicted, YTrue- dict of observed data to this point, ysum- sum of observations to this point
     #OUTPUT: updated predictionDict, ysum and YTrue for week j
     #by Anna
     X = np.matrix(np.zeros(shape = (1, q)))
     X = D[county][year][j][1].T
     B = Bci[county][year]
-    pred = X*B
-    if float(pred) <0:
+    pred = float(X*B)
+    if pred <0:
         pred = 0
-    predictionDict[county][year]['rate'].append(float(pred))
+    if (pred > 3* predictionDict[county][year][VoI][j-1]) or ( pred > 3* predictionDict[county][year][VoI][j-2]):        
+            pred = .5*pred
+    predictionDict[county][year][VoI].append(pred)
     ysum = predictionDict[county][year]['ybar'][j-1]*(j)
     ysum += float(D[county][year][j][0])
     ybar = ysum/(j+1)
@@ -237,7 +278,7 @@ def NextpredictionDict(county, year, D, Bci,q, predictionDict, j, YTrue, ysum):
 
 
 
-def Linear_Regression(OtherPredVar, years, countyDict, countyList, VoI, PredWeek, start):
+def Linear_Regression(OtherPredVar, years, countyDict, countyList, VoI, PredWeek, start, alpha0, alpha1):
     #INPUT: OtherPredVar-dict of other predictor variables,VoI- variable of interest, #number of predictor variables, #of weeks used to train Beta
     #OUTPUT: predictionDict-dict of predictions by county, year  for each week, YTrue- dict of observed values by county by year, for each week
     #by Anna
@@ -245,17 +286,19 @@ def Linear_Regression(OtherPredVar, years, countyDict, countyList, VoI, PredWeek
     D, q = Data(countyList, years, countyDict, PredWeek, OtherPredVar, D,VoI)
     Aci = {}
     Zci = {}
-    Aci, Zci = InitialTrainingMatricies( countyList, years, D, Aci, Zci, q, start)
+    weights = {}
+    Aci, Zci, weights = InitialTrainingMatricies( countyList, years, D, Aci, Zci, q, start, alpha0, alpha1, weights)
     Bci = {}
     Bci = InitialBetaSolver(countyList, years, Aci, Zci, Bci, q)
-    predictionDict, ysum, YTrue = initialpredictionDict(countyList, years, D, Bci, q, start)
+    predictionDict, ysum, YTrue = initialpredictionDict(countyList, years, D, Bci, q, VoI, start)
     for county in countyList:
         for year in years:
             for j in range(start,len(D[county][year])):
-                predictionDict, ysum, YTrue = NextpredictionDict(county, year, D, Bci,q,predictionDict, j, YTrue, ysum)
-                Aci, Zci = NextTrainingMatricies( county, year, D, Aci, Zci,j, start)
+                predictionDict, ysum, YTrue = NextpredictionDict(county, year, D, Bci,q, VoI,predictionDict, j, YTrue, ysum)
+                Aci, Zci, weights = NextTrainingMatricies( county, year, D, Aci, Zci, q, j, start, alpha0, alpha1, weights)
                 Bci = NextBetaSolver(county, year, Aci, Zci, Bci, q, j)
     return predictionDict, YTrue
+
 
 
 
@@ -265,17 +308,17 @@ def Linear_Regression(OtherPredVar, years, countyDict, countyList, VoI, PredWeek
 #PLOTTING RESULTS
 ###############################################################################
 
-def plot1(County,Year, YTrue, predictionDict):
+def plot1(County,Year, YTrue, predictionDict, VoI):
     Year= Year
     x = range(len (YTrue[County][Year]))
     y = YTrue[County][Year]
-    z = predictionDict[County][Year]['rate']
+    z = predictionDict[County][Year][VoI]
     yb = predictionDict[County][Year]['ybar']
     Title= County +" Year " +str (Year)
     plt.title(Title)
     plt.plot(x, yb, 'go-', linewidth = 2.0, label = "ybar")
-    plt.plot(x, y, 'bo-', linewidth = 2.0, label = "Observed Rates")
-    plt.plot(x, z, 'ro-', linewidth = 2.0, label = "Prediction Rates")
+    plt.plot(x, y, 'bo-', linewidth = 2.0, label = "Observed" + VoI)
+    plt.plot(x, z, 'ro-', linewidth = 2.0, label = "Prediction" + VoI)
     plt.legend(loc = "upper right")
     plt.show()
 
